@@ -3,22 +3,28 @@
 ## Repository
 
 - Name: `depth-model-survey`
-- Path: `/Volumes/data/work/gb_works/depth_model_survey`
-- Summary: 단일 이미지에서 픽셀 깊이를 추정해 3D 형상(폴리곤 메시)으로 변환하는 프로젝트의 제안서 작성을 위한 사전 조사 워크스페이스.
+- Path: `/home/agent01/works/depth_model_suevey`
+- Summary: 단일 이미지 깊이 추정/메시화 사전 조사 + 웹 데모 구현/배포 워크스페이스.
 
 ## Top-level structure
 
 ```
-depth_model_survey/
+depth_model_suevey/
 ├── .git/                  # 저장소
 ├── .gitignore             # uv init 기본값
 ├── .python-version        # 3.11
-├── README.md              # (현재 비어 있음)
-├── pyproject.toml         # uv init 기본 설정
-├── main.py                # uv init 기본 hello-world
+├── README.md              # 제안서 문서(mermaid 일부 반영)
+├── pyproject.toml         # Python 의존성 (fastapi/uvicorn 포함)
+├── main.py                # 기본 엔트리(실사용도 낮음)
 ├── _forai/                # AI 작업 문맥 (README/inventory/memo/dev_log/plan)
 ├── examples/              # 데모 예제 모음
-│   └── depth_anything_v2_minimal/  (예정)
+│   ├── depth_anything_v2_minimal/
+│   └── pointcloud_to_mesh/
+├── web_demo/
+│   ├── backend/           # FastAPI Job API
+│   ├── frontend/          # React + Vite + Three.js
+│   ├── ecosystem.config.cjs
+│   └── README.md
 └── pds/                   # 제안서 자료
     ├── models/            # 모델별 대표 이미지·README
     ├── papers/            # 논문 PDF·abstract·핵심 그림
@@ -27,27 +33,39 @@ depth_model_survey/
 
 ## Entrypoints and key modules
 
-- `main.py`: `uv init` 기본 hello-world. 실제 작업은 `examples/` 하위에서 진행.
-- 최소 데모 예정: `examples/depth_anything_v2_minimal/main.py` — 단일 이미지 → 깊이맵 PNG.
+- `examples/depth_anything_v2_minimal/main.py`: 단일 이미지 → 깊이맵/컬러맵 생성.
+- `examples/pointcloud_to_mesh/main.py`: 깊이맵 → 포인트클라우드/메시 생성.
+- `web_demo/backend/app/main.py`: FastAPI 서버 (`/api/v1/jobs`, `/artifacts`).
+- `web_demo/frontend/src/App.tsx`: 업로드/상태/3D 뷰어 UI.
+- `web_demo/ecosystem.config.cjs`: PM2 운영 설정(`dap3d-backend`, 21031).
 
 ## Build and validation commands
 
 - 의존성 동기화: `uv sync`
-- 예제 실행(예정): `uv run python examples/depth_anything_v2_minimal/main.py <image>`
-- 모델 가중치 캐시: `/Volumes/data/temp/for_claudeworks/depth_survey/` 아래로 몰아 두고 작업 종료 후 정리.
+- 예제 실행:
+    - `uv run python examples/depth_anything_v2_minimal/main.py <image>`
+    - `uv run python examples/pointcloud_to_mesh/main.py <depth_png> --rgb <image>`
+- 웹 데모 백엔드:
+    - `uv run uvicorn --app-dir web_demo/backend app.main:app --port 21031`
+- 웹 데모 프론트:
+    - `cd web_demo/frontend && npm run dev`
+    - `cd web_demo/frontend && npm run build`
+- PM2:
+    - `pm2 start web_demo/ecosystem.config.cjs --only dap3d-backend`
 
 ## Runtime
 
 - Python: 3.11 (`.python-version`)
-- 패키지 매니저: uv (pip 직접 사용 금지)
-- 디바이스: CUDA GPU 있음 — `torch`는 CUDA 빌드로 설치, 실패 시 CPU 폴백.
+- 패키지 매니저: uv (Python), npm (frontend)
+- 디바이스: CUDA GPU 환경 지원, 실패 시 CPU 폴백
+- 서비스 URL: `http://gobackdev.iptime.org:21038/dap3d`
 
 ## Tests
 
-- 현재 테스트 없음. 데모 예제가 정상 동작하는지 수동 검증.
+- 자동 테스트는 없음. 현재는 빌드/헬스체크/수동 UI 검증 중심.
 
 ## Notes
 
-- 본 저장소는 **연구/제안서 사전 조사용**이지 프로덕션 코드가 아니다. 최소 코드 + 문서 중심.
-- 이미지·영상·논문 자료는 라이선스를 확인 후 `pds/`에 저장하고, 출처는 `memo.md`에 기록한다.
-- 대용량 가중치는 저장소에 커밋하지 않는다 — `.gitignore`에 필요 시 규칙 추가.
+- 사전 조사 문서(`pds`, 루트 `README.md`)와 데모 구현(`web_demo`)이 공존한다.
+- 배포는 Nginx(21038) + backend proxy(`/api`, `/artifacts`) 구성을 사용한다.
+- 아티팩트 저장 경로는 `web_demo/backend/data/jobs` 기준.

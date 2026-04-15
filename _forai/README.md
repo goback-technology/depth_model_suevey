@@ -2,7 +2,7 @@
 
 ## 한 줄 요약
 
-이 디렉터리는 `depth_model_survey` 작업을 이어받을 때 필요한 AI 작업 문맥을 정리해 두는 곳이다. 단일 이미지 → 깊이 추정 → 3D 메시 파이프라인의 **프로젝트 제안서 사전 조사**가 목적이다.
+이 디렉터리는 `depth_model_suevey` 작업을 이어받을 때 필요한 AI 작업 문맥을 정리해 두는 곳이다. 현재는 사전 조사뿐 아니라 **웹 데모(FastAPI + React + Three.js) 구현/배포 상태**까지 포함해 관리한다.
 
 ## 읽는 순서
 
@@ -21,12 +21,14 @@
 
 ## 현재 스냅샷
 
-- 저장소 경로: `/Volumes/data/work/gb_works/depth_model_survey`
-- 프로젝트 타입: `uv init`으로 초기화된 Python 3.11 프로젝트
-- 목표: 깊이 추정 모델 + 메시화 파이프라인 비교 조사, 제안서용 이미지 수집, 최소 데모 예제
+- 저장소 경로: `/home/agent01/works/depth_model_suevey`
+- 프로젝트 타입: Python(uv) + 웹 데모(React/Vite)
+- 목표: 깊이 추정 모델 + 메시화 파이프라인 조사 및 웹 데모 운영
 - 기준 모델: Depth Anything V2
 - 자료 저장소: `./pds/` (models/papers/applications 하위 분류)
-- 데모 예제: `./examples/depth_anything_v2_minimal/` (예정)
+- 데모 예제: `./examples/depth_anything_v2_minimal/`, `./examples/pointcloud_to_mesh/`
+- 웹 데모: `./web_demo/backend`, `./web_demo/frontend`
+- 배포 경로: `/home/agent01/works/web_pub/dap3d` (Nginx 21038)
 
 ## 유지 규칙
 

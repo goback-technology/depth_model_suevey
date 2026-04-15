@@ -2,6 +2,69 @@
 
 ## 2026-04-15
 
+### _forai 문서 정리 + 구현 확인 반영 (2026-04-15)
+- `_forai/README.md` 스냅샷을 현재 저장소 기준으로 갱신:
+  - 실제 경로(`/home/agent01/works/depth_model_suevey`)
+  - 웹 데모/배포 상태 포함
+- `_forai/inventory.md` 전면 갱신:
+  - `web_demo` 구조, 엔트리포인트, 실행/배포 명령, PM2/Nginx 운영 정보 반영
+- `_forai/memo.md`에 "구현 확인 상태" 섹션 추가:
+  - MVP 구현/운영/아티팩트/빌드 경고 해석/버전 배지 반영 상태 요약
+- 구현 확인 중 경로 버그 수정:
+  - `web_demo/backend/app/core/settings.py`의 아티팩트 경로를
+    `web_demo/backend/data/jobs` 기준으로 수정 (`web_demo/web_demo/...` 중첩 제거)
+
+### 프론트 버전 표시 추가 및 빌드 검증 (2026-04-15)
+- `frontend` 상단 헤더에 앱 버전 배지(`v0.1.0`) 표시 추가.
+- Vite `define`으로 `__APP_VERSION__` 주입, npm 스크립트에서 `VITE_APP_VERSION=$npm_package_version` 설정.
+- `npm run build` 재검증 완료(성공).
+- 빌드 로그의 `"use client" ignored` 및 chunk size 메시지는 경고이며, 빌드 실패 아님을 확인.
+
+### PM2 ecosystem 파일 추가 (2026-04-15)
+- `web_demo/ecosystem.config.cjs` 신규 생성.
+- 앱명: `dap3d-backend`, 포트: `21031`.
+- 실행 명령을 `uv run uvicorn --app-dir web_demo/backend app.main:app --port 21031`로 고정.
+- `web_demo/README.md`의 PM2 섹션을 ecosystem 기반 실행/리로드 명령으로 갱신.
+
+### 웹 데모 다음 단계 반영 (2026-04-15)
+- 백엔드 API 입력 검증 강화:
+  - 이미지 업로드 크기 제한 10MB
+  - `voxel_size`/`depth_trunc` 범위 검증
+- 아티팩트 확장:
+  - `cloud.ply`, `mesh.obj` 추가 생성
+  - Job 응답 아티팩트에 `point_cloud_url`, `mesh_obj_url` 추가
+- 프론트 UI 확장:
+  - 모델/메시 방식/파라미터 입력 UI 추가
+  - 복셀/메시 표시 토글 추가
+  - 깊이맵 프리뷰 및 아티팩트 다운로드 버튼 추가
+- 문서:
+  - `web_demo/README.md` 실행/엔드포인트 가이드 추가
+
+### 웹 데모 MVP 코드 구현 (2026-04-15)
+- 경로: `web_demo/backend`, `web_demo/frontend`.
+- 백엔드(FastAPI):
+  - `POST /api/v1/jobs` 업로드 + 비동기 처리 시작
+  - `GET /api/v1/jobs/{job_id}` 상태 조회
+  - `/artifacts/{job_id}/...` 정적 파일 제공
+- 파이프라인:
+  - Depth Anything V2 추론
+  - 포인트클라우드 생성 후 복셀화(`VoxelGrid`)
+  - Poisson/BPA 메시 생성
+  - `voxels.json`, `mesh.json`, `depth_color.png` 아티팩트 생성
+- 프론트엔드(React + Three.js):
+  - 이미지 업로드/상태 폴링 UI
+  - 복셀(인스턴스 박스) + 메시 동시 렌더링 뷰어
+  - 모바일 대응 기본 레이아웃 포함
+
+### 웹 데모 기획 반영 (2026-04-15)
+- 사용자 요청으로 `_forai` 문서에 웹 데모 설계 초안 추가.
+- 반영 위치: `memo.md`.
+- 핵심 결정:
+  - 스택: FastAPI(REST) + React(Vite/TS) + Three.js.
+  - 처리 방식: v1은 Job API 기반(`POST /jobs`, `GET /jobs/{id}`) 권장.
+  - 렌더링 포맷: JSON(vertices/faces)보다 GLB 우선.
+  - 기존 `examples/` 파이프라인을 서비스 레이어에서 재사용.
+
 ### _forAI 문서 세트 초기 생성
 - `forai-scaffold` 지침에 따라 `README.md`, `inventory.md`, `memo.md`, `dev_log.md`를 신규 생성.
 - 기존 `plan.md`(사용자 요구사항 원본)는 그대로 보존.

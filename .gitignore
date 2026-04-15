@@ -9,3 +9,5 @@ wheels/
 # Virtual environments
 .venv
 out/
+
+node_modules/

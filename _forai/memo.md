@@ -2,6 +2,21 @@
 
 본 프로젝트의 참고 정보를 모으는 곳. 조사가 진행되면 이 파일을 갱신한다.
 
+## 구현 확인 상태 (2026-04-15)
+
+- 웹 데모 MVP 구현 완료:
+  - Backend: FastAPI Job API (`POST /api/v1/jobs`, `GET /api/v1/jobs/{job_id}`)
+  - Frontend: React + Three.js 업로드/상태/복셀+메시 렌더링
+- 운영 반영 완료:
+  - PM2 ecosystem: `web_demo/ecosystem.config.cjs`
+  - Nginx 경유 서비스: `http://gobackdev.iptime.org:21038/dap3d`
+- 아티팩트:
+  - `depth_color.png`, `voxels.json`, `mesh.json`, `cloud.ply`, `mesh.obj`
+- 최근 확인 포인트:
+  - `npm run build` 성공 (react-query `"use client" ignored`는 경고)
+  - 처리 중 버튼 비활성화 로직 반영
+  - 프론트 상단 버전 배지(`v0.1.0`) 노출
+
 ## 제품 기준선
 
 - 최종 목표: 단일 RGB 이미지 → 픽셀 깊이 → 3D 폴리곤 메시 변환 파이프라인의 기술 타당성 검증 및 제안서 작성
@@ -174,6 +189,62 @@ mesh_bpa = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(
 - `o3d.geometry.TriangleMesh.create_from_depth_image` 직접 사용 — 빠르지만 카메라 왜곡 보정이 안 되어 품질은 떨어짐.
 - MeshLab의 Poisson / Screened Poisson — 오프라인 배치 처리에 좋음.
 - Blender Displacement modifier — 아티스트 친화 루트, 텍스처와 결합해 러프 모델링에 쓰임.
+
+---
+
+## 웹 데모 아키텍처 초안 (FastAPI + React + Three.js)
+
+목표: 기존 예제 파이프라인(이미지 → 깊이 → 포인트클라우드 → 메시)을 웹에서 업로드/처리/3D 뷰어까지 한 번에 시연.
+
+### 시스템 구성
+
+- Backend: FastAPI (Python 3.11, `uv`), 기존 `examples/` 모듈 호출
+- Frontend: React + Vite + TypeScript
+- 3D Renderer: Three.js (`@react-three/fiber`, `@react-three/drei`)
+- 처리 방식: 비동기 잡(Job) 기반 권장 (업로드 즉시 응답 + 상태 폴링)
+
+### 권장 API 계약 (v1)
+
+1. `POST /api/v1/jobs`
+- 입력: multipart image, 옵션(`model`, `mesh_method`, `depth_trunc`, intrinsics)
+- 출력: `job_id`, `status=queued`
+
+2. `GET /api/v1/jobs/{job_id}`
+- 출력: `queued|running|done|failed`, 진행률, 에러 메시지
+
+3. `GET /api/v1/jobs/{job_id}/mesh`
+- 출력: `glb` 파일 스트림(권장) 또는 JSON(vertices/faces)
+
+4. `GET /api/v1/jobs/{job_id}/artifacts`
+- 출력: 깊이맵 PNG, 포인트클라우드 PLY, 메시 OBJ/GLB 다운로드 URL
+
+### 백엔드 구현 메모
+
+- `app/api/`: 라우터(`jobs.py`)
+- `app/services/`: `depth_service.py`, `mesh_service.py`, `artifact_service.py`
+- `app/schemas/`: `job.py` (Pydantic v2)
+- 큐: 1차는 인메모리(`asyncio.create_task`)로 시작, 이후 Redis/RQ/Celery 확장
+- 반환 포맷: WebGL 로딩 성능 때문에 JSON보다 GLB 우선 권장
+
+### 프론트엔드 구현 메모
+
+- 페이지 흐름: 업로드 → 상태표시 → 3D 뷰어
+- 뷰어 기본 기능: 회전/줌/팬, wireframe 토글, 광원 강도 조절, 배경색 변경
+- 상태관리: TanStack Query로 폴링 및 캐시
+- 파일 다운로드: 원본/깊이맵/PLY/OBJ/GLB 버튼 제공
+
+### 성능/운영 포인트
+
+- 대형 이미지 업로드 제한(예: 10MB) + 서버측 리사이즈 옵션
+- GPU 없을 때 CPU fallback 허용, 대신 처리시간을 명시
+- 캐시 키: `hash(image)+options`로 중복 연산 방지
+- 보관 정책: 아티팩트 TTL(예: 24h) 후 정리
+
+### 단계별 범위 제안
+
+- Phase A (MVP): 단일 이미지 업로드, 동기 처리, GLB 1개 렌더링
+- Phase B: Job 큐/상태 API, 결과 캐시, 아티팩트 다운로드
+- Phase C: 모델 전환(DA V2 Small/Metric3D), intrinsics 입력 UI, 배치 처리
 
 ---
 
