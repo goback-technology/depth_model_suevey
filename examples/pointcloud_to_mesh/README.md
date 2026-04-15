@@ -24,38 +24,51 @@ cd /Volumes/data/work/gb_works/depth_model_survey
 uv add open3d pillow numpy
 ```
 
+## 샘플 준비 (DA V2 출력 이용)
+
+```bash
+# Depth Anything V2 데모를 먼저 실행해 깊이맵 생성
+uv run python examples/depth_anything_v2_minimal/main.py \
+  examples/depth_anything_v2_minimal/samples/test.jpg
+
+# 결과를 pointcloud_to_mesh 샘플로 복사
+cp examples/depth_anything_v2_minimal/out/test_depth.png \
+   examples/pointcloud_to_mesh/samples/depth.png
+cp examples/depth_anything_v2_minimal/samples/test.jpg \
+   examples/pointcloud_to_mesh/samples/rgb.jpg
+```
+
 ## 실행
 
 ```bash
 cd examples/pointcloud_to_mesh
 
-# 기본 (Poisson):
-uv run python main.py samples/depth.png
+# Poisson 메시 (부드러운 닫힌 표면):
+uv run python main.py samples/depth.png --rgb samples/rgb.jpg \
+  --method poisson --depth_trunc 2.2
 
-# BPA 메시:
-uv run python main.py samples/depth.png --method bpa
+# BPA 메시 (에지 보존):
+uv run python main.py samples/depth.png --rgb samples/rgb.jpg \
+  --method bpa --depth_trunc 2.2
 
-# 컬러 포인트 클라우드 포함:
-uv run python main.py samples/depth.png --rgb samples/rgb.jpg
-
-# 카메라 intrinsics 지정 (있는 경우):
+# 카메라 intrinsics 지정 (실측 치수 필요 시):
 uv run python main.py samples/depth.png --fx 525 --fy 525 --cx 320 --cy 240
 ```
 
-출력:
-- `out/<stem>_cloud.ply` — 포인트 클라우드
-- `out/<stem>_mesh_poisson.obj` 또는 `out/<stem>_mesh_bpa.obj` — 삼각형 메시
+출력 (검증 완료 2026-04-15):
+- `out/depth_cloud.ply` — 컬러 포인트 클라우드 ~107만 점 (52MB)
+- `out/depth_mesh_poisson.obj` — Poisson 삼각형 메시 (31MB)
+- `out/depth_mesh_bpa.obj` — BPA 삼각형 메시 (149MB)
 
-## 파이프라인 두 단계로 분리해서 쓰기
-
-Depth Anything V2 데모와 연결 (전체 파이프라인):
+## 전체 파이프라인 (DA V2 → 메시)
 
 ```bash
 # 1) 깊이맵 생성
-uv run python ../depth_anything_v2_minimal/main.py photo.jpg --out out/
+uv run python examples/depth_anything_v2_minimal/main.py photo.jpg --out tmp/
 
-# 2) 깊이맵 → 메시
-uv run python main.py out/photo_depth.png --rgb photo.jpg
+# 2) 깊이맵 → 메시 (--depth_trunc는 스케일에 맞게 조정)
+uv run python examples/pointcloud_to_mesh/main.py \
+  tmp/photo_depth.png --rgb photo.jpg --depth_trunc 2.2
 ```
 
 ## 주의

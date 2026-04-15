@@ -60,7 +60,7 @@ def estimate_normals(pcd: o3d.geometry.PointCloud) -> o3d.geometry.PointCloud:
 
 def poisson_mesh(pcd: o3d.geometry.PointCloud) -> o3d.geometry.TriangleMesh:
     mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
-        pcd, depth=9
+        pcd, depth=8
     )
     # 저밀도 버텍스 제거 (floating vertices)
     densities_arr = np.asarray(densities)
@@ -92,13 +92,22 @@ def run(
     method: str,
     depth_trunc: float,
 ) -> None:
-    # 깊이맵 로드 — 8/16bit 모두 허용, 0~1로 정규화 후 역변환
-    depth_img = Image.open(depth_path).convert("I")  # 16-bit grayscale
+    # 깊이맵 로드 — 8/16bit 모두 허용
+    raw = Image.open(depth_path)
+    depth_img = raw.convert("I") if raw.mode not in ("L", "I") else raw
     depth_arr = np.asarray(depth_img, dtype=np.float32)
-    if depth_arr.max() > 1.0:
-        depth_arr = depth_arr / depth_arr.max()
-    # affine-invariant inverse depth → 의사 깊이 변환
-    depth_arr = 1.0 / (depth_arr + 1e-6)
+
+    # 0~1 정규화
+    d_min, d_max = depth_arr.min(), depth_arr.max()
+    if d_max > d_min:
+        depth_arr = (depth_arr - d_min) / (d_max - d_min)
+
+    # DA V2 출력은 "밝을수록 가까움"(inverse depth).
+    # 역변환해서 "밝을수록 멀다"(실제 깊이 방향)로 바꾼다.
+    depth_arr = 1.0 - depth_arr  # 0=가까움, 1=멀음
+
+    # 포인트 클라우드의 절대 스케일을 2m 범위로 제한해 메시화 안정성 확보
+    depth_arr = depth_arr * 2.0 + 0.1  # 0.1m ~ 2.1m
 
     H, W = depth_arr.shape
     _fx = fx if fx is not None else 0.8 * W
@@ -108,11 +117,29 @@ def run(
 
     rgb_arr = None
     if rgb_path is not None:
-        rgb_arr = np.asarray(Image.open(rgb_path).convert("RGB"))
+        rgb_img = Image.open(rgb_path).convert("RGB")
+        # 깊이맵 해상도에 맞춰 리사이즈
+        if rgb_img.size != (W, H):
+            rgb_img = rgb_img.resize((W, H), Image.LANCZOS)
+        rgb_arr = np.asarray(rgb_img)
 
-    print(f"[info] 깊이맵: {depth_arr.shape}, fx={_fx:.1f}, fy={_fy:.1f}")
+    print(f"[info] 깊이맵: {depth_arr.shape}, depth: [{depth_arr.min():.2f}, {depth_arr.max():.2f}]m")
+    print(f"[info] intrinsics: fx={_fx:.1f}, fy={_fy:.1f}, cx={_cx:.1f}, cy={_cy:.1f}")
 
-    pcd = depth_to_pcd(depth_arr, rgb_arr, _fx, _fy, _cx, _cy, depth_trunc=depth_trunc)
+    pcd = depth_to_pcd(depth_arr, rgb_arr, _fx, _fy, _cx, _cy,
+                       depth_scale=1.0, depth_trunc=depth_trunc)
+
+    # 노이즈 제거: 통계적 outlier 제거
+    pcd, _ = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
+    print(f"[info] 포인트 수 (노이즈 제거 후): {len(pcd.points):,}")
+
+    # 메시화 안정성을 위해 voxel 다운샘플링 (목표: ~50만 점 이하)
+    n_pts = len(pcd.points)
+    if n_pts > 500_000:
+        voxel_size = 0.005 * (n_pts / 500_000) ** (1 / 3)
+        pcd = pcd.voxel_down_sample(voxel_size=voxel_size)
+        print(f"[info] 포인트 수 (다운샘플 후): {len(pcd.points):,}  (voxel={voxel_size:.4f})")
+
     pcd = estimate_normals(pcd)
 
     out_dir.mkdir(parents=True, exist_ok=True)

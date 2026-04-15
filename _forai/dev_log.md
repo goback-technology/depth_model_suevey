@@ -54,3 +54,21 @@
 - 구성: Executive Summary → 배경·문제 → 기술 개요 → 모델 비교표 → 응용 4종(문화재·e-커머스·로봇·AR/VR) → 결과 이미지(V1 vs V2, 모델 비교) → 로드맵 3단계 → 리스크 테이블 → 필요 자원 → 참고
 - Phase 1(타당성·데모 2개월) → Phase 2(API 모듈화 +2개월) → Phase 3(사업 연결) 3단계 로드맵
 - 라이선스 권장 명시: 상업 배포 = DA V2 Small(Apache-2.0) 또는 Metric3D v2(BSD-2-Clause)
+
+### 추론 검증 완료 (2026-04-15)
+- 환경: Apple M1 Max / MPS (CUDA 없음, MPS 자동 감지로 수정)
+- 실행: `uv run python examples/depth_anything_v2_minimal/main.py samples/test.jpg`
+- 결과: `out/test_depth.png` (회색조 1280×853), `out/test_depth_color.png` (turbo 컬러맵) 정상 생성
+- matplotlib `get_cmap` deprecation 경고 수정 (`matplotlib.colormaps.get_cmap`)
+- 데모 결과 이미지를 `pds/applications/depth_results_demo/`에 복사, 제안서 §7에 삽입
+- 의존성: torch 2.11.0, transformers 5.5.4 — `uv add` 완료, `pyproject.toml` 갱신됨
+
+### pointcloud_to_mesh 검증 완료 (2026-04-15)
+- 샘플: DA V2 출력 깊이맵(`test_depth.png`) + 원본 RGB → `samples/depth.png`, `samples/rgb.jpg`
+- 수정 사항:
+  - 8-bit PNG 입력 처리 (`raw.mode` 분기)
+  - inverse depth → 선형 깊이 변환 (`1.0 - norm`) + 0.1~2.1m 범위 클리핑
+  - `remove_statistical_outlier` 전처리 추가 (107만 점 → 노이즈 제거)
+- 결과 (all OK): `depth_cloud.ply` 52MB, `depth_mesh_poisson.obj` 31MB, `depth_mesh_bpa.obj` 149MB
+- open3d 0.19.0 설치됨
+- 전체 파이프라인 확정: `depth_anything_v2_minimal` → `pointcloud_to_mesh` 직결 가능

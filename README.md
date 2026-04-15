@@ -161,7 +161,42 @@
 
 ---
 
-## 7. 제안 구현 로드맵
+## 7. 직접 구동 데모 결과
+
+> Depth Anything V2-Small (Apache-2.0)을 **M1 Max MPS** 환경에서 실제 구동한 결과.  
+> 모델 추론 → 포인트 클라우드 → 3D 메시까지 전체 파이프라인을 검증했다.
+
+### 주차장 (Parking Lot)
+
+| 입력 | 깊이맵 (컬러) |
+|------|-------------|
+| ![입력](examples/pointcloud_to_mesh/samples/parking.jpg) | ![깊이맵](examples/pointcloud_to_mesh/samples/parking_depth_color.png) |
+
+- 산출물: `parking_depth_cloud.ply` (3.4MB, 7만 점), `parking_depth_mesh_poisson.obj` (6.9MB)
+- 근거리 차량 = 주황/빨강, 배경 건물 = 파랑. Poisson 메시 생성 성공.
+
+### 도심 도로 (Urban Road)
+
+| 입력 | 깊이맵 (컬러) |
+|------|-------------|
+| ![입력](examples/pointcloud_to_mesh/samples/road.jpg) | ![깊이맵](examples/pointcloud_to_mesh/samples/road_depth_color.png) |
+
+- 산출물: `road_depth_cloud.ply` (6.4MB, 13만 점), `road_depth_mesh_bpa.obj` (18MB)
+- 도로 원근감이 앞→뒤 빨강→파랑 그라디언트로 명확하게 표현. BPA 메시 생성 성공.
+
+**컬러맵 기준**: 붉은색=근거리, 파란색=원거리.
+
+```bash
+# 단계 1 — 깊이맵 생성
+uv run python examples/depth_anything_v2_minimal/main.py <이미지> --out tmp/
+
+# 단계 2 — 포인트 클라우드 + 메시 생성
+uv run python examples/pointcloud_to_mesh/main.py tmp/<stem>_depth.png --rgb <이미지> --depth_trunc 2.2
+```
+
+---
+
+## 8. 로드맵
 
 ### Phase 1 — 타당성 검증 (1~2개월)
 
@@ -187,7 +222,7 @@
 
 ---
 
-## 8. 리스크 및 한계
+## 9. 리스크 및 한계
 
 | 리스크 | 설명 | 대응 |
 |-------|------|------|
@@ -199,7 +234,7 @@
 
 ---
 
-## 9. 필요 자원 (추정)
+## 10. 필요 자원 (추정)
 
 | 항목 | 스펙 | 비고 |
 |------|------|------|
@@ -210,7 +245,7 @@
 
 ---
 
-## 10. 참고 자료
+## 11. 참고 자료
 
 ### 논문
 
