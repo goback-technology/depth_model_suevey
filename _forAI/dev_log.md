@@ -2,6 +2,10 @@
 
 ## 2026-04-20
 
+### 생성 산출물 ignore 정리 (2026-04-20)
+- `web_demo/backend/data/jobs/*`를 `.gitignore`에 추가했다.
+- 이미 버전 관리 중인 예시 job 산출물은 유지하고, 새로 생성되는 웹 데모 실행 결과만 워킹트리에서 제외하도록 정리했다.
+
 ### `_forAI` 문서 경로 표준화 및 스캐폴드 점검 (2026-04-20)
 - 문서 디렉터리명을 `_forai`에서 `_forAI`로 정규화했다.
 - 루트 `README.md`, `pds/papers/README.md`, `_forAI/inventory.md`의 내부 참조를 `_forAI` 기준으로 맞췄다.

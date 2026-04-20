@@ -11,3 +11,6 @@ wheels/
 out/
 
 node_modules/
+
+# Web demo generated job artifacts
+web_demo/backend/data/jobs/*
