@@ -1,6 +1,6 @@
 # Papers
 
-핵심 5종 모델의 논문 메타데이터와 인용 정보. 전체 BibTeX와 라이선스 요약은 `_forai/memo.md`에 통합되어 있다.
+핵심 5종 모델의 논문 메타데이터와 인용 정보. 전체 BibTeX와 라이선스 요약은 `_forAI/memo.md`에 통합되어 있다.
 
 ## 1) Depth Anything V2 (NeurIPS 2024)
 
@@ -36,4 +36,4 @@
 
 ## 인용(BibTeX)
 
-전체 BibTeX는 `../../_forai/memo.md`의 "BibTeX" 섹션에서 관리한다.
+전체 BibTeX는 `../../_forAI/memo.md`의 "BibTeX" 섹션에서 관리한다.

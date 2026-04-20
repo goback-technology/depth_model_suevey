@@ -16,7 +16,7 @@ depth_model_suevey/
 ├── README.md              # 제안서 문서(mermaid 일부 반영)
 ├── pyproject.toml         # Python 의존성 (fastapi/uvicorn 포함)
 ├── main.py                # 기본 엔트리(실사용도 낮음)
-├── _forai/                # AI 작업 문맥 (README/inventory/memo/dev_log/plan)
+├── _forAI/                # AI 작업 문맥 (README/inventory/memo/dev_log/plan)
 ├── examples/              # 데모 예제 모음
 │   ├── depth_anything_v2_minimal/
 │   └── pointcloud_to_mesh/
@@ -67,5 +67,6 @@ depth_model_suevey/
 ## Notes
 
 - 사전 조사 문서(`pds`, 루트 `README.md`)와 데모 구현(`web_demo`)이 공존한다.
+- `_forAI/` 디렉터리를 기준 문서 허브로 사용한다.
 - 배포는 Nginx(21038) + backend proxy(`/api`, `/artifacts`) 구성을 사용한다.
 - 아티팩트 저장 경로는 `web_demo/backend/data/jobs` 기준.

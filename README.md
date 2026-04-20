@@ -298,7 +298,7 @@ graph TD
 - [Metric3D GitHub](https://github.com/YvanYin/Metric3D)
 - [MiDaS GitHub](https://github.com/isl-org/MiDaS) (아카이브)
 - [Marigold GitHub](https://github.com/prs-eth/Marigold)
-- 본 저장소 사전 조사 문서: [`_forai/memo.md`](_forai/memo.md)
+- 본 저장소 사전 조사 문서: [`_forAI/memo.md`](_forAI/memo.md)
 - 모델별 상세: [`pds/models/`](pds/models/)
 - 응용 사례 이미지: [`pds/applications/`](pds/applications/)
 

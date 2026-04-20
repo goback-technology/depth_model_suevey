@@ -1,14 +1,22 @@
 # Dev Log
 
+## 2026-04-20
+
+### `_forAI` 문서 경로 표준화 및 스캐폴드 점검 (2026-04-20)
+- 문서 디렉터리명을 `_forai`에서 `_forAI`로 정규화했다.
+- 루트 `README.md`, `pds/papers/README.md`, `_forAI/inventory.md`의 내부 참조를 `_forAI` 기준으로 맞췄다.
+- `forai-scaffold` 기준 문서 세트(`README.md`, `inventory.md`, `plan.md`, `memo.md`, `dev_log.md`)가 모두 존재하는지 재점검했다.
+- 웹 데모 실행 중 생성된 `web_demo/backend/data/jobs/...` 미추적 산출물은 사용자 작업물로 보고 이번 커밋 범위에서 제외한다.
+
 ## 2026-04-15
 
-### _forai 문서 정리 + 구현 확인 반영 (2026-04-15)
-- `_forai/README.md` 스냅샷을 현재 저장소 기준으로 갱신:
+### _forAI 문서 정리 + 구현 확인 반영 (2026-04-15)
+- `_forAI/README.md` 스냅샷을 현재 저장소 기준으로 갱신:
   - 실제 경로(`/home/agent01/works/depth_model_suevey`)
   - 웹 데모/배포 상태 포함
-- `_forai/inventory.md` 전면 갱신:
+- `_forAI/inventory.md` 전면 갱신:
   - `web_demo` 구조, 엔트리포인트, 실행/배포 명령, PM2/Nginx 운영 정보 반영
-- `_forai/memo.md`에 "구현 확인 상태" 섹션 추가:
+- `_forAI/memo.md`에 "구현 확인 상태" 섹션 추가:
   - MVP 구현/운영/아티팩트/빌드 경고 해석/버전 배지 반영 상태 요약
 - 구현 확인 중 경로 버그 수정:
   - `web_demo/backend/app/core/settings.py`의 아티팩트 경로를
@@ -57,7 +65,7 @@
   - 모바일 대응 기본 레이아웃 포함
 
 ### 웹 데모 기획 반영 (2026-04-15)
-- 사용자 요청으로 `_forai` 문서에 웹 데모 설계 초안 추가.
+- 사용자 요청으로 `_forAI` 문서에 웹 데모 설계 초안 추가.
 - 반영 위치: `memo.md`.
 - 핵심 결정:
   - 스택: FastAPI(REST) + React(Vite/TS) + Three.js.
